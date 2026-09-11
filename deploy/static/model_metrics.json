@@ -1,0 +1,25 @@
+{
+  "auc_roc": 0.9983995310220513,
+  "average_precision": 0.9856371998898623,
+  "confusion_matrix": [
+    [
+      106084,
+      1408
+    ],
+    [
+      23,
+      17485
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n Not Flooded       1.00      0.99      0.99    107492\n     Flooded       0.93      1.00      0.96     17508\n\n    accuracy                           0.99    125000\n   macro avg       0.96      0.99      0.98    125000\nweighted avg       0.99      0.99      0.99    125000\n",
+  "n_features": 7,
+  "features": [
+    "elevation",
+    "slope",
+    "twi",
+    "distance_to_river",
+    "land_cover",
+    "rainfall_max",
+    "rainfall_cumulative"
+  ]
+}

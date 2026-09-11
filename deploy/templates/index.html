@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flood Susceptibility Mapping — Sindh 2022</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
+
+        .layout { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
+
+        /* Header */
+        .header { grid-column: 1 / -1; background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 16px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #1e293b; }
+        .header h1 { font-size: 1.3rem; font-weight: 700; color: #f8fafc; }
+        .header h1 span { color: #38bdf8; }
+        .header .badge { background: #166534; color: #4ade80; font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+
+        /* Sidebar */
+        .sidebar { background: #1e293b; padding: 20px; overflow-y: auto; border-right: 1px solid #334155; }
+        .sidebar h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; }
+        .metric-card { background: #0f172a; border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
+        .metric-card .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-card .value { font-size: 1.6rem; font-weight: 700; color: #38bdf8; margin-top: 2px; }
+        .metric-card .sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+        .legend-section { margin-top: 20px; }
+        .legend-bar { height: 14px; border-radius: 4px; background: linear-gradient(to right, #00ff00, #ffff00, #ff8800, #ff0000); margin: 8px 0; }
+        .legend-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; }
+
+        .cities-list { margin-top: 16px; }
+        .city-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; }
+        .city-item:hover { color: #38bdf8; }
+        .city-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; border: 1.5px solid #fca5a5; flex-shrink: 0; }
+
+        .eval-section { margin-top: 20px; }
+        .eval-img { width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid #334155; cursor: pointer; }
+
+        /* Map */
+        #map { width: 100%; height: 100%; }
+
+        /* Analysis panel */
+        .analysis-panel { grid-column: 1 / -1; background: #1e293b; border-top: 1px solid #334155; padding: 14px 24px; min-height: 80px; }
+        .analysis-panel h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 8px; }
+        .analysis-content { display: flex; align-items: center; gap: 24px; }
+        .analysis-hint { color: #64748b; font-size: 0.85rem; }
+        .risk-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; }
+        .risk-low { background: #166534; color: #4ade80; }
+        .risk-moderate { background: #854d0e; color: #fbbf24; }
+        .risk-high { background: #9a3412; color: #fb923c; }
+        .risk-very-high { background: #991b1b; color: #fca5a5; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <!-- Header -->
+    <div class="header">
+        <h1>🌊 <span>Flood Susceptibility</span> — Sindh 2022</h1>
+        <span class="badge">XGBoost • AUC 0.998</span>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Model Performance</h2>
+        <div class="metric-card">
+            <div class="label">AUC-ROC</div>
+            <div class="value" id="auc">—</div>
+            <div class="sub">Discrimination ability</div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Avg Precision</div>
+            <div class="value" id="ap">—</div>
+            <div class="sub">Precision-recall balance</div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Flood Recall</div>
+            <div class="value" id="recall">—</div>
+            <div class="sub">% of actual floods detected</div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend-section">
+            <h2>Risk Legend</h2>
+            <div class="legend-bar"></div>
+            <div class="legend-labels">
+                <span>0.0 Low</span><span>0.25</span><span>0.5</span><span>0.75</span><span>1.0 High</span>
+            </div>
+        </div>
+
+        <!-- Cities -->
+        <div class="cities-list">
+            <h2>Key Cities</h2>
+            <div class="city-item" data-lat="25.396" data-lon="68.358"><div class="city-dot"></div>Hyderabad</div>
+            <div class="city-item" data-lat="27.705" data-lon="68.857"><div class="city-dot"></div>Sukkur</div>
+            <div class="city-item" data-lat="27.555" data-lon="68.214"><div class="city-dot"></div>Larkana</div>
+            <div class="city-item" data-lat="26.248" data-lon="68.410"><div class="city-dot"></div>Nawabshah</div>
+            <div class="city-item" data-lat="25.528" data-lon="69.013"><div class="city-dot"></div>Mirpur Khas</div>
+            <div class="city-item" data-lat="28.283" data-lon="68.438"><div class="city-dot"></div>Jacobabad</div>
+            <div class="city-item" data-lat="27.530" data-lon="68.759"><div class="city-dot"></div>Khairpur</div>
+            <div class="city-item" data-lat="27.956" data-lon="68.638"><div class="city-dot"></div>Shikarpur</div>
+            <div class="city-item" data-lat="24.747" data-lon="67.924"><div class="city-dot"></div>Thatta</div>
+            <div class="city-item" data-lat="24.656" data-lon="68.837"><div class="city-dot"></div>Badin</div>
+        </div>
+
+        <!-- Eval plots -->
+        <div class="eval-section">
+            <h2>Evaluation Plots</h2>
+            <img class="eval-img" src="/static/evaluation_plots.png" alt="Model evaluation plots" onclick="window.open(this.src)">
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Analysis Panel -->
+    <div class="analysis-panel">
+        <h3>Location Analysis</h3>
+        <div class="analysis-content" id="analysis">
+            <span class="analysis-hint">👆 Click anywhere on the map to see flood risk details</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Map Setup ────────────────────────────────────────────────────────
+const map = L.map('map', { zoomControl: true }).setView([26.0, 68.5], 7);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OSM &copy; CARTO',
+    maxZoom: 18
+}).addTo(map);
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri',
+    maxZoom: 18
+}).addTo(map);
+
+// ── Study Area ───────────────────────────────────────────────────────
+const studyArea = L.rectangle(
+    [[23.5, 67.0], [28.5, 71.0]],
+    { color: '#ef4444', weight: 2, dashArray: '8,4', fill: false }
+).addTo(map).bindTooltip('Study Area — Sindh 2022');
+
+// ── City Markers ─────────────────────────────────────────────────────
+const cities = [
+    ['Hyderabad', 25.396, 68.358], ['Sukkur', 27.705, 68.857],
+    ['Larkana', 27.555, 68.214], ['Nawabshah', 26.248, 68.410],
+    ['Mirpur Khas', 25.528, 69.013], ['Jacobabad', 28.283, 68.438],
+    ['Khairpur', 27.530, 68.759], ['Shikarpur', 27.956, 68.638],
+    ['Thatta', 24.747, 67.924], ['Badin', 24.656, 68.837],
+];
+cities.forEach(([name, lat, lon]) => {
+    L.circleMarker([lat, lon], {
+        radius: 5, color: '#1e293b', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2
+    }).addTo(map).bindTooltip(name, { permanent: true, direction: 'right', className: 'city-label' });
+});
+
+// ── Click handler ────────────────────────────────────────────────────
+map.on('click', async (e) => {
+    const { lat, lng } = e.latlng;
+    const panel = document.getElementById('analysis');
+    panel.innerHTML = '<span class="analysis-hint">Loading...</span>';
+
+    try {
+        const res = await fetch(`/api/analyze?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`);
+        const data = await res.json();
+        if (data.error) {
+            panel.innerHTML = `<span style="color:#94a3b8">📍 ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E — ${data.error}</span>`;
+            return;
+        }
+        const levelClass = data.risk_level === 'Low' ? 'risk-low' :
+                           data.risk_level === 'Moderate' ? 'risk-moderate' :
+                           data.risk_level === 'High' ? 'risk-high' : 'risk-very-high';
+        const emoji = data.risk_level === 'Low' ? '🟢' : data.risk_level === 'Moderate' ? '🟡' :
+                      data.risk_level === 'High' ? '🟠' : '🔴';
+        panel.innerHTML = `
+            <span style="color:#cbd5e1">📍 ${data.lat.toFixed(4)}°N, ${data.lon.toFixed(4)}°E</span>
+            <span class="risk-badge ${levelClass}">${emoji} ${data.risk_level}</span>
+            <span style="color:#e2e8f0;font-weight:700;font-size:1.1rem">Score: ${data.risk_score}</span>
+        `;
+    } catch (err) {
+        panel.innerHTML = '<span style="color:#ef4444">Error fetching risk data</span>';
+    }
+});
+
+// ── City click → fly to ─────────────────────────────────────────────
+document.querySelectorAll('.city-item').forEach(el => {
+    el.addEventListener('click', () => {
+        map.flyTo([parseFloat(el.dataset.lat), parseFloat(el.dataset.lon)], 10, { duration: 0.8 });
+    });
+});
+
+// ── Load risk overlay ────────────────────────────────────────────────
+fetch('/api/risk').then(r => r.json()).then(data => {
+    const { south, north, west, east } = data.bounds;
+    const grid = data.data;
+    const rows = grid.length;
+    const cols = grid[0].length;
+
+    // Create canvas overlay
+    const canvas = document.createElement('canvas');
+    canvas.width = cols;
+    canvas.height = rows;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(cols, rows);
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const val = grid[r][c];
+            const idx = (r * cols + c) * 4;
+            if (val < 0) { imgData.data[idx + 3] = 0; continue; }
+            const [red, green, blue] = riskColor(val);
+            imgData.data[idx] = red;
+            imgData.data[idx + 1] = green;
+            imgData.data[idx + 2] = blue;
+            imgData.data[idx + 3] = val < 0.1 ? 40 : 180;
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    L.imageOverlay(canvas.toDataURL(), [[south, west], [north, east]], { opacity: 0.8 }).addTo(map);
+});
+
+// ── Color ramp ───────────────────────────────────────────────────────
+function riskColor(v) {
+    v = Math.max(0, Math.min(1, v));
+    if (v < 0.25) { const t = v / 0.25; return [Math.round(t * 255), 255, 0]; }
+    if (v < 0.5) { const t = (v - 0.25) / 0.25; return [255, Math.round(255 * (1 - t)), 0]; }
+    if (v < 0.75) { const t = (v - 0.5) / 0.25; return [255, 0, Math.round(t * 100)]; }
+    const t = (v - 0.75) / 0.25; return [Math.round(255 * (1 - t * 0.4)), 0, Math.round(100 + t * 155)];
+}
+
+// ── Load metrics ─────────────────────────────────────────────────────
+fetch('/api/metrics').then(r => r.json()).then(m => {
+    if (m.auc_roc) document.getElementById('auc').textContent = m.auc_roc.toFixed(3);
+    if (m.avg_precision) document.getElementById('ap').textContent = m.avg_precision.toFixed(3);
+    if (m.classification_report) {
+        const flood = m.classification_report['Flooded'] || m.classification_report['1'];
+        if (flood) document.getElementById('recall').textContent = (flood.recall * 100).toFixed(0) + '%';
+    }
+});
+</script>
+
+<style>
+    .city-label { background: transparent !important; border: none !important; box-shadow: none !important;
+        color: #f8fafc; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; }
+</style>
+</body>
+</html>

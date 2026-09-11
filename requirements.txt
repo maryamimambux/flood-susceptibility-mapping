@@ -1,0 +1,39 @@
+# Core geospatial
+rasterio>=1.3.0
+geopandas>=0.14.0
+xarray>=2023.1.0
+shapely>=2.0.0
+pyproj>=3.6.0
+fiona>=1.9.0
+
+# Terrain analysis (TWI, slope, etc.)
+whitebox>=2.3.0
+
+# NetCDF support
+netCDF4>=1.6.0
+h5netcdf>=1.2.0
+
+# ML
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+imbalanced-learn>=0.11.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Dashboard
+streamlit>=1.28.0
+folium>=0.15.0
+streamlit-folium>=0.15.0
+
+# Scientific image processing
+scipy>=1.11.0
+
+# Data download helpers
+requests>=2.31.0
+boto3>=1.28.0
+aiohttp>=3.9.0
+tqdm>=4.66.0
