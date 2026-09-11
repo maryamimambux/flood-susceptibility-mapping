@@ -19,6 +19,7 @@
             --text-faint: #505068;
             --white: #ffffff;
             --navy: #120f25;
+            --blue: #04424b;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -46,15 +47,26 @@
             inset: 0;
             z-index: 0;
         }
-        #hero-map { width: 100%; height: 100%; }
+        .hero-topo {
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse 600px 400px at 30% 40%, rgba(40,35,70,0.5) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 300px at 70% 60%, rgba(25,30,55,0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 800px 500px at 50% 50%, rgba(20,18,40,0.3) 0%, transparent 60%),
+                repeating-radial-gradient(circle at 35% 45%, transparent 0, transparent 40px, rgba(255,255,255,0.02) 41px, transparent 42px),
+                repeating-radial-gradient(circle at 65% 55%, transparent 0, transparent 55px, rgba(255,255,255,0.015) 56px, transparent 57px),
+                repeating-radial-gradient(circle at 20% 70%, transparent 0, transparent 30px, rgba(255,255,255,0.01) 31px, transparent 32px),
+                linear-gradient(135deg, #0a0816 0%, #12102a 30%, #0d0b1e 60%, #080614 100%);
+        }
         .hero-overlay {
             position: absolute;
             inset: 0;
             background: linear-gradient(
                 to bottom,
-                rgba(13,11,24,0.82) 0%,
-                rgba(13,11,24,0.75) 40%,
-                rgba(13,11,24,0.92) 80%,
+                rgba(13,11,24,0.3) 0%,
+                rgba(13,11,24,0.2) 50%,
+                rgba(13,11,24,0.85) 90%,
                 rgba(13,11,24,1.0) 100%
             );
             z-index: 1;
@@ -83,13 +95,14 @@
         }
         .hero-title .accent { color: #e0e0e0; font-weight: 400; }
         .hero-sub {
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
             font-size: 1.05rem;
-            color: #d0d0d8;
-            font-weight: 300;
+            color: #dcdce8;
+            font-weight: 400;
             line-height: 1.7;
             max-width: 540px;
             margin: 0 auto 32px;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+            text-shadow: 0 1px 6px rgba(0,0,0,0.5);
         }
         .hero-stats {
             display: flex;
@@ -371,7 +384,7 @@
 <!-- ════════════ HERO ════════════ -->
 <section class="hero">
     <div class="hero-bg">
-        <div id="hero-map"></div>
+        <div class="hero-topo"></div>
         <div class="hero-overlay"></div>
     </div>
     <div class="hero-content"> 
@@ -523,15 +536,6 @@
 
 <!-- ════════════ SCRIPTS ════════════ -->
 <script>
-// ── Hero background map ──────────────────────────────────────────────
-const heroMap = L.map('hero-map', {
-    zoomControl: false, attributionControl: false,
-    dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false
-}).setView([26.0, 68.5], 7);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '&copy; Esri'
-}).addTo(heroMap);
-
 // ── Interactive map ──────────────────────────────────────────────────
 const map = L.map('interactive-map', { zoomControl: true }).setView([26.0, 68.5], 7);
 const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -611,9 +615,6 @@ fetch('/api/risk').then(r => r.json()).then(data => {
     ctx.putImageData(img, 0, 0);
     const overlay = L.imageOverlay(canvas.toDataURL(), [[south,west],[north,east]], { opacity: 0.8 });
     overlay.addTo(map);
-    // Also add faded version to hero map
-    const heroOverlay = L.imageOverlay(canvas.toDataURL(), [[south,west],[north,east]], { opacity: 0.5 });
-    heroOverlay.addTo(heroMap);
 });
 
 function riskColor(v) {
