@@ -10,20 +10,22 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg: #111111;
-            --bg-alt: #1a1a1a;
-            --bg-card: #222222;
-            --border: #333333;
-            --text: #e8e8e8;
-            --text-dim: #999999;
-            --text-faint: #555555;
+            --bg: #0d0b18;
+            --bg-alt: #16132a;
+            --bg-card: #1e1a35;
+            --border: #2d2850;
+            --text: #e0e0e8;
+            --text-dim: #8888a0;
+            --text-faint: #505068;
             --white: #ffffff;
+            --navy: #120f25;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Source Serif 4', Georgia, serif;
-            background: var(--bg);
+            background: linear-gradient(180deg, var(--bg) 0%, #0a0816 30%, var(--bg-alt) 60%, var(--bg) 100%);
+            background-attachment: fixed;
             color: var(--text);
             -webkit-font-smoothing: antialiased;
         }
@@ -50,10 +52,10 @@
             inset: 0;
             background: linear-gradient(
                 to bottom,
-                rgba(17,17,17,0.65) 0%,
-                rgba(17,17,17,0.55) 40%,
-                rgba(17,17,17,0.80) 80%,
-                rgba(17,17,17,1.0) 100%
+                rgba(13,11,24,0.70) 0%,
+                rgba(13,11,24,0.55) 40%,
+                rgba(13,11,24,0.85) 80%,
+                rgba(13,11,24,1.0) 100%
             );
             z-index: 1;
         }
@@ -162,10 +164,15 @@
             margin-top: 32px;
         }
         .feature-card {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(30,26,53,0.6) 100%);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 20px;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .feature-card:hover {
+            border-color: #4a4480;
+            transform: translateY(-2px);
         }
         .feature-card .fname {
             font-size: 0.7rem;
@@ -274,11 +281,16 @@
             margin-top: 32px;
         }
         .result-card {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(30,26,53,0.5) 100%);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 28px 24px;
             text-align: center;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .result-card:hover {
+            border-color: #4a4480;
+            transform: translateY(-2px);
         }
         .result-card .rval {
             font-family: 'Playfair Display', serif;
@@ -317,6 +329,7 @@
             border-top: 1px solid var(--border);
             padding: 40px 32px;
             text-align: center;
+            background: linear-gradient(180deg, transparent 0%, rgba(18,15,37,0.5) 100%);
         }
         .footer p {
             font-size: 0.78rem;
@@ -357,8 +370,7 @@
         <div id="hero-map"></div>
         <div class="hero-overlay"></div>
     </div>
-    <div class="hero-content">
-        <div class="hero-tag">MITACS Research Project</div>
+    <div class="hero-content"> 
         <h1 class="hero-title">
             Flood Susceptibility<br>
             <span class="accent">Sindh Province, 2022</span>
@@ -456,8 +468,6 @@
     <div id="interactive-map"></div>
 
     <div class="map-controls">
-        <button class="map-ctrl-btn active" onclick="setBase('dark')">Dark</button>
-        <button class="map-ctrl-btn" onclick="setBase('satellite')">Satellite</button>
         <div class="city-chips" id="city-chips"></div>
     </div>
 
@@ -520,20 +530,13 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 
 // ── Interactive map ──────────────────────────────────────────────────
 const map = L.map('interactive-map', { zoomControl: true }).setView([26.0, 68.5], 7);
-const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OSM &copy; CARTO', maxZoom: 18
-}).addTo(map);
 const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution: '&copy; Esri', maxZoom: 18
-});
-let currentBase = darkLayer;
+}).addTo(map);
+let currentBase = satLayer;
 
 function setBase(type) {
-    map.removeLayer(currentBase);
-    currentBase = type === 'satellite' ? satLayer : darkLayer;
-    currentBase.addTo(map);
-    document.querySelectorAll('.map-ctrl-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    // Only satellite available
 }
 
 // Study area
