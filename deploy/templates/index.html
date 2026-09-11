@@ -5,66 +5,240 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flood Susceptibility Mapping — Sindh 2022</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+        :root {
+            --bg-deep: #0c1220;
+            --bg-panel: #131b2e;
+            --bg-card: #1a2440;
+            --border: #253255;
+            --text-primary: #e8ecf4;
+            --text-secondary: #8a96b0;
+            --text-muted: #5a6785;
+            --accent: #5b9bd5;
+            --accent-warm: #d4a76a;
+            --green: #5cb87a;
+            --yellow: #e0c060;
+            --orange: #d4845a;
+            --red: #c05050;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
 
-        .layout { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
+        body {
+            font-family: 'Source Serif 4', 'Georgia', serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
 
-        /* Header */
-        .header { grid-column: 1 / -1; background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 16px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #1e293b; }
-        .header h1 { font-size: 1.3rem; font-weight: 700; color: #f8fafc; }
-        .header h1 span { color: #38bdf8; }
-        .header .badge { background: #166534; color: #4ade80; font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
 
-        /* Sidebar */
-        .sidebar { background: #1e293b; padding: 20px; overflow-y: auto; border-right: 1px solid #334155; }
-        .sidebar h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; }
-        .metric-card { background: #0f172a; border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
-        .metric-card .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-        .metric-card .value { font-size: 1.6rem; font-weight: 700; color: #38bdf8; margin-top: 2px; }
-        .metric-card .sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+        /* ── Header ─────────────────────────────────────────── */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--bg-panel);
+            padding: 18px 28px;
+            display: flex;
+            align-items: baseline;
+            gap: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 {
+            font-family: 'Playfair Display', 'Georgia', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.3px;
+        }
+        .header h1 .thin {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .header .badge {
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.72rem;
+            color: var(--green);
+            border: 1px solid rgba(92, 184, 122, 0.3);
+            padding: 2px 10px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+        }
+        .header .subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            font-style: italic;
+        }
 
-        .legend-section { margin-top: 20px; }
-        .legend-bar { height: 14px; border-radius: 4px; background: linear-gradient(to right, #00ff00, #ffff00, #ff8800, #ff0000); margin: 8px 0; }
-        .legend-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; }
+        /* ── Sidebar ────────────────────────────────────────── */
+        .sidebar {
+            background: var(--bg-panel);
+            padding: 24px 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+        .sidebar h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
 
-        .cities-list { margin-top: 16px; }
-        .city-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; }
-        .city-item:hover { color: #38bdf8; }
-        .city-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; border: 1.5px solid #fca5a5; flex-shrink: 0; }
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+        .metric-card:hover { border-color: var(--accent); }
+        .metric-card .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+        .metric-card .value {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 4px 0 2px;
+        }
+        .metric-card .sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
 
-        .eval-section { margin-top: 20px; }
-        .eval-img { width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid #334155; cursor: pointer; }
+        /* ── Legend ──────────────────────────────────────────── */
+        .section { margin-top: 24px; }
+        .legend-bar {
+            height: 10px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #3a8c5c, #b8c84e, #d4a040, #c05050);
+            margin: 10px 0 6px;
+        }
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
 
-        /* Map */
+        /* ── Cities ─────────────────────────────────────────── */
+        .city-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 8px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .city-item:hover {
+            background: rgba(91, 155, 213, 0.08);
+            color: var(--accent);
+        }
+        .city-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-warm);
+            flex-shrink: 0;
+        }
+
+        /* ── Eval ───────────────────────────────────────────── */
+        .eval-img {
+            width: 100%;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        .eval-img:hover { opacity: 1; }
+
+        /* ── Map ────────────────────────────────────────────── */
         #map { width: 100%; height: 100%; }
 
-        /* Analysis panel */
-        .analysis-panel { grid-column: 1 / -1; background: #1e293b; border-top: 1px solid #334155; padding: 14px 24px; min-height: 80px; }
-        .analysis-panel h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 8px; }
-        .analysis-content { display: flex; align-items: center; gap: 24px; }
-        .analysis-hint { color: #64748b; font-size: 0.85rem; }
-        .risk-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; }
-        .risk-low { background: #166534; color: #4ade80; }
-        .risk-moderate { background: #854d0e; color: #fbbf24; }
-        .risk-high { background: #9a3412; color: #fb923c; }
-        .risk-very-high { background: #991b1b; color: #fca5a5; }
+        /* ── Analysis Panel ─────────────────────────────────── */
+        .analysis-panel {
+            grid-column: 1 / -1;
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            padding: 16px 28px;
+            min-height: 72px;
+        }
+        .analysis-panel h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .analysis-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.88rem;
+        }
+        .analysis-hint {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .coord-text { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+        .score-text { color: var(--text-primary); font-weight: 600; font-size: 1rem; }
 
-        /* Responsive */
+        .risk-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+        }
+        .risk-low { background: rgba(58, 140, 92, 0.2); color: var(--green); border: 1px solid rgba(58, 140, 92, 0.3); }
+        .risk-moderate { background: rgba(224, 192, 96, 0.15); color: var(--yellow); border: 1px solid rgba(224, 192, 96, 0.25); }
+        .risk-high { background: rgba(212, 132, 64, 0.15); color: var(--orange); border: 1px solid rgba(212, 132, 64, 0.25); }
+        .risk-very-high { background: rgba(192, 80, 80, 0.15); color: var(--red); border: 1px solid rgba(192, 80, 80, 0.3); }
+
         @media (max-width: 768px) {
             .layout { grid-template-columns: 1fr; }
             .sidebar { display: none; }
+            .header .subtitle { display: none; }
         }
     </style>
 </head>
 <body>
 <div class="layout">
+
     <!-- Header -->
     <div class="header">
-        <h1>🌊 <span>Flood Susceptibility</span> — Sindh 2022</h1>
-        <span class="badge">XGBoost • AUC 0.998</span>
+        <h1>Flood Susceptibility <span class="thin">/</span> Sindh 2022</h1>
+        <span class="badge">XGBoost</span>
+        <span class="subtitle">MITACS Research &mdash; Copernicus EMS Ground Truth</span>
     </div>
 
     <!-- Sidebar -->
@@ -72,32 +246,30 @@
         <h2>Model Performance</h2>
         <div class="metric-card">
             <div class="label">AUC-ROC</div>
-            <div class="value" id="auc">—</div>
+            <div class="value" id="auc">&mdash;</div>
             <div class="sub">Discrimination ability</div>
         </div>
         <div class="metric-card">
             <div class="label">Avg Precision</div>
-            <div class="value" id="ap">—</div>
+            <div class="value" id="ap">&mdash;</div>
             <div class="sub">Precision-recall balance</div>
         </div>
         <div class="metric-card">
             <div class="label">Flood Recall</div>
-            <div class="value" id="recall">—</div>
-            <div class="sub">% of actual floods detected</div>
+            <div class="value" id="recall">&mdash;</div>
+            <div class="sub">Actual floods detected</div>
         </div>
 
-        <!-- Legend -->
-        <div class="legend-section">
-            <h2>Risk Legend</h2>
+        <div class="section">
+            <h2>Risk Scale</h2>
             <div class="legend-bar"></div>
             <div class="legend-labels">
-                <span>0.0 Low</span><span>0.25</span><span>0.5</span><span>0.75</span><span>1.0 High</span>
+                <span>0.0</span><span>0.25</span><span>0.50</span><span>0.75</span><span>1.0</span>
             </div>
         </div>
 
-        <!-- Cities -->
-        <div class="cities-list">
-            <h2>Key Cities</h2>
+        <div class="section">
+            <h2>Study Region</h2>
             <div class="city-item" data-lat="25.396" data-lon="68.358"><div class="city-dot"></div>Hyderabad</div>
             <div class="city-item" data-lat="27.705" data-lon="68.857"><div class="city-dot"></div>Sukkur</div>
             <div class="city-item" data-lat="27.555" data-lon="68.214"><div class="city-dot"></div>Larkana</div>
@@ -110,9 +282,8 @@
             <div class="city-item" data-lat="24.656" data-lon="68.837"><div class="city-dot"></div>Badin</div>
         </div>
 
-        <!-- Eval plots -->
-        <div class="eval-section">
-            <h2>Evaluation Plots</h2>
+        <div class="section">
+            <h2>Evaluation</h2>
             <img class="eval-img" src="/static/evaluation_plots.png" alt="Model evaluation plots" onclick="window.open(this.src)">
         </div>
     </div>
@@ -124,13 +295,13 @@
     <div class="analysis-panel">
         <h3>Location Analysis</h3>
         <div class="analysis-content" id="analysis">
-            <span class="analysis-hint">👆 Click anywhere on the map to see flood risk details</span>
+            <span class="analysis-hint">Click on the map to inspect flood risk at any location</span>
         </div>
     </div>
 </div>
 
 <script>
-// ── Map Setup ────────────────────────────────────────────────────────
+// ── Map ──────────────────────────────────────────────────────────────
 const map = L.map('map', { zoomControl: true }).setView([26.0, 68.5], 7);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -144,10 +315,10 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 }).addTo(map);
 
 // ── Study Area ───────────────────────────────────────────────────────
-const studyArea = L.rectangle(
+L.rectangle(
     [[23.5, 67.0], [28.5, 71.0]],
-    { color: '#ef4444', weight: 2, dashArray: '8,4', fill: false }
-).addTo(map).bindTooltip('Study Area — Sindh 2022');
+    { color: '#5b9bd5', weight: 1.5, dashArray: '6,4', fill: false, opacity: 0.6 }
+).addTo(map).bindTooltip('Study Area');
 
 // ── City Markers ─────────────────────────────────────────────────────
 const cities = [
@@ -159,35 +330,35 @@ const cities = [
 ];
 cities.forEach(([name, lat, lon]) => {
     L.circleMarker([lat, lon], {
-        radius: 5, color: '#1e293b', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2
-    }).addTo(map).bindTooltip(name, { permanent: true, direction: 'right', className: 'city-label' });
+        radius: 4, color: '#d4a76a', fillColor: '#d4a76a', fillOpacity: 0.85, weight: 1
+    }).addTo(map).bindTooltip(name, {
+        permanent: true, direction: 'right', className: 'city-label', offset: [6, 0]
+    });
 });
 
 // ── Click handler ────────────────────────────────────────────────────
 map.on('click', async (e) => {
     const { lat, lng } = e.latlng;
     const panel = document.getElementById('analysis');
-    panel.innerHTML = '<span class="analysis-hint">Loading...</span>';
+    panel.innerHTML = '<span class="analysis-hint">Querying...</span>';
 
     try {
         const res = await fetch(`/api/analyze?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`);
         const data = await res.json();
         if (data.error) {
-            panel.innerHTML = `<span style="color:#94a3b8">📍 ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E — ${data.error}</span>`;
+            panel.innerHTML = `<span class="coord-text">${lat.toFixed(4)}N, ${lng.toFixed(4)}E &mdash; ${data.error}</span>`;
             return;
         }
         const levelClass = data.risk_level === 'Low' ? 'risk-low' :
                            data.risk_level === 'Moderate' ? 'risk-moderate' :
                            data.risk_level === 'High' ? 'risk-high' : 'risk-very-high';
-        const emoji = data.risk_level === 'Low' ? '🟢' : data.risk_level === 'Moderate' ? '🟡' :
-                      data.risk_level === 'High' ? '🟠' : '🔴';
         panel.innerHTML = `
-            <span style="color:#cbd5e1">📍 ${data.lat.toFixed(4)}°N, ${data.lon.toFixed(4)}°E</span>
-            <span class="risk-badge ${levelClass}">${emoji} ${data.risk_level}</span>
-            <span style="color:#e2e8f0;font-weight:700;font-size:1.1rem">Score: ${data.risk_score}</span>
+            <span class="coord-text">${data.lat.toFixed(4)}N, ${data.lon.toFixed(4)}E</span>
+            <span class="risk-badge ${levelClass}">${data.risk_level}</span>
+            <span class="score-text">${data.risk_score}</span>
         `;
     } catch (err) {
-        panel.innerHTML = '<span style="color:#ef4444">Error fetching risk data</span>';
+        panel.innerHTML = '<span style="color:#c05050">Failed to fetch risk data</span>';
     }
 });
 
@@ -198,62 +369,60 @@ document.querySelectorAll('.city-item').forEach(el => {
     });
 });
 
-// ── Load risk overlay ────────────────────────────────────────────────
+// ── Risk overlay ─────────────────────────────────────────────────────
 fetch('/api/risk').then(r => r.json()).then(data => {
     const { south, north, west, east } = data.bounds;
     const grid = data.data;
-    const rows = grid.length;
-    const cols = grid[0].length;
-
-    // Create canvas overlay
+    const rows = grid.length, cols = grid[0].length;
     const canvas = document.createElement('canvas');
-    canvas.width = cols;
-    canvas.height = rows;
+    canvas.width = cols; canvas.height = rows;
     const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(cols, rows);
+    const img = ctx.createImageData(cols, rows);
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-            const val = grid[r][c];
-            const idx = (r * cols + c) * 4;
-            if (val < 0) { imgData.data[idx + 3] = 0; continue; }
-            const [red, green, blue] = riskColor(val);
-            imgData.data[idx] = red;
-            imgData.data[idx + 1] = green;
-            imgData.data[idx + 2] = blue;
-            imgData.data[idx + 3] = val < 0.1 ? 40 : 180;
+            const v = grid[r][c], i = (r * cols + c) * 4;
+            if (v < 0) { img.data[i + 3] = 0; continue; }
+            const [cr, cg, cb] = riskColor(v);
+            img.data[i] = cr; img.data[i+1] = cg; img.data[i+2] = cb;
+            img.data[i+3] = v < 0.08 ? 30 : 170;
         }
     }
-    ctx.putImageData(imgData, 0, 0);
-
+    ctx.putImageData(img, 0, 0);
     L.imageOverlay(canvas.toDataURL(), [[south, west], [north, east]], { opacity: 0.8 }).addTo(map);
 });
 
-// ── Color ramp ───────────────────────────────────────────────────────
 function riskColor(v) {
     v = Math.max(0, Math.min(1, v));
-    if (v < 0.25) { const t = v / 0.25; return [Math.round(t * 255), 255, 0]; }
-    if (v < 0.5) { const t = (v - 0.25) / 0.25; return [255, Math.round(255 * (1 - t)), 0]; }
-    if (v < 0.75) { const t = (v - 0.5) / 0.25; return [255, 0, Math.round(t * 100)]; }
-    const t = (v - 0.75) / 0.25; return [Math.round(255 * (1 - t * 0.4)), 0, Math.round(100 + t * 155)];
+    if (v < 0.25) { const t = v / 0.25; return [Math.round(58 + t * 126), Math.round(140 + t * 60), Math.round(92 - t * 14)]; }
+    if (v < 0.5)  { const t = (v - 0.25) / 0.25; return [Math.round(184 + t * 28), Math.round(200 - t * 8), Math.round(78 - t * 14)]; }
+    if (v < 0.75) { const t = (v - 0.5) / 0.25; return [Math.round(212 - t * 20), Math.round(192 - t * 60), Math.round(64 - t * 4)]; }
+    const t = (v - 0.75) / 0.25; return [Math.round(192 - t * 20), Math.round(132 - t * 52), Math.round(60 - t * 10)];
 }
 
-// ── Load metrics ─────────────────────────────────────────────────────
+// ── Metrics ──────────────────────────────────────────────────────────
 fetch('/api/metrics').then(r => r.json()).then(m => {
     if (m.auc_roc) document.getElementById('auc').textContent = m.auc_roc.toFixed(3);
     if (m.average_precision) document.getElementById('ap').textContent = m.average_precision.toFixed(3);
     if (m.confusion_matrix) {
-        const fn = m.confusion_matrix[1][0];
-        const tp = m.confusion_matrix[1][1];
-        const recall = tp / (tp + fn);
-        document.getElementById('recall').textContent = (recall * 100).toFixed(0) + '%';
+        const tp = m.confusion_matrix[1][1], fn = m.confusion_matrix[1][0];
+        document.getElementById('recall').textContent = ((tp / (tp + fn)) * 100).toFixed(0) + '%';
     }
 });
 </script>
 
 <style>
-    .city-label { background: transparent !important; border: none !important; box-shadow: none !important;
-        color: #f8fafc; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; }
+    .city-label {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #c8d0e0;
+        font-family: 'Source Serif 4', Georgia, serif;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.3px;
+        text-shadow: 0 0 4px rgba(12,18,32,0.95), 0 0 8px rgba(12,18,32,0.8);
+    }
 </style>
 </body>
 </html>
