@@ -50,9 +50,9 @@
             inset: 0;
             background: linear-gradient(
                 to bottom,
-                rgba(17,17,17,0.55) 0%,
-                rgba(17,17,17,0.40) 40%,
-                rgba(17,17,17,0.70) 80%,
+                rgba(17,17,17,0.65) 0%,
+                rgba(17,17,17,0.55) 40%,
+                rgba(17,17,17,0.80) 80%,
                 rgba(17,17,17,1.0) 100%
             );
             z-index: 1;
@@ -514,7 +514,9 @@ const heroMap = L.map('hero-map', {
     zoomControl: false, attributionControl: false,
     dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false
 }).setView([26.0, 68.5], 7);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png').addTo(heroMap);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri'
+}).addTo(heroMap);
 
 // ── Interactive map ──────────────────────────────────────────────────
 const map = L.map('interactive-map', { zoomControl: true }).setView([26.0, 68.5], 7);
