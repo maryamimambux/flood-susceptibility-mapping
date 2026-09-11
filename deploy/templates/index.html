@@ -6,320 +6,540 @@
     <title>Flood Susceptibility Mapping — Sindh 2022</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg-deep: #1a1a1a;
-            --bg-panel: #242424;
-            --bg-card: #2e2e2e;
-            --border: #404040;
-            --text-primary: #f0f0f0;
-            --text-secondary: #b0b0b0;
-            --text-muted: #707070;
-            --accent: #e0e0e0;
-            --accent-warm: #c8c8c8;
-            --green: #5cb87a;
-            --yellow: #e0c060;
-            --orange: #d4845a;
-            --red: #c05050;
+            --bg: #111111;
+            --bg-alt: #1a1a1a;
+            --bg-card: #222222;
+            --border: #333333;
+            --text: #e8e8e8;
+            --text-dim: #999999;
+            --text-faint: #555555;
+            --white: #ffffff;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Source Serif 4', 'Georgia', serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
+            font-family: 'Source Serif 4', Georgia, serif;
+            background: var(--bg);
+            color: var(--text);
             -webkit-font-smoothing: antialiased;
         }
 
-        .layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: auto 1fr auto;
+        /* ── Hero ───────────────────────────────────────────── */
+        .hero {
+            position: relative;
             height: 100vh;
-        }
-
-        /* ── Header ─────────────────────────────────────────── */
-        .header {
-            grid-column: 1 / -1;
-            background: var(--bg-panel);
-            padding: 18px 28px;
             display: flex;
-            align-items: baseline;
-            gap: 20px;
-            border-bottom: 1px solid var(--border);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
         }
-        .header h1 {
-            font-family: 'Playfair Display', 'Georgia', serif;
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: 0.3px;
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
         }
-        .header h1 .thin {
-            font-weight: 500;
-            color: var(--text-secondary);
+        #hero-map { width: 100%; height: 100%; }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(17,17,17,0.55) 0%,
+                rgba(17,17,17,0.40) 40%,
+                rgba(17,17,17,0.70) 80%,
+                rgba(17,17,17,1.0) 100%
+            );
+            z-index: 1;
         }
-        .header .badge {
-            font-family: 'Source Serif 4', serif;
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 720px;
+            padding: 0 32px;
+        }
+        .hero-tag {
             font-size: 0.72rem;
-            color: #b0b0b0;
-            border: 1px solid rgba(176, 176, 176, 0.3);
-            padding: 2px 10px;
-            border-radius: 3px;
-            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
         }
-        .header .subtitle {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-left: auto;
-            font-style: italic;
-        }
-
-        /* ── Sidebar ────────────────────────────────────────── */
-        .sidebar {
-            background: var(--bg-panel);
-            padding: 24px 20px;
-            overflow-y: auto;
-            border-right: 1px solid var(--border);
-        }
-        .sidebar h2 {
+        .hero-title {
             font-family: 'Playfair Display', serif;
-            font-size: 0.82rem;
-            font-weight: 500;
+            font-size: 3.2rem;
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+        .hero-title .accent { color: #d0d0d0; font-weight: 400; }
+        .hero-sub {
+            font-size: 1.05rem;
+            color: var(--text-dim);
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 540px;
+            margin: 0 auto 32px;
+        }
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 8px;
+        }
+        .hero-stat-val {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+        .hero-stat-label {
+            font-size: 0.68rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: var(--text-muted);
-            margin-bottom: 14px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
+            color: var(--text-faint);
+            margin-top: 4px;
+        }
+        .scroll-hint {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            color: var(--text-faint);
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        /* ── Section base ───────────────────────────────────── */
+        .section {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 80px 32px;
+        }
+        .section-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--text-faint);
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 24px;
+        }
+        .section-body {
+            font-size: 1rem;
+            line-height: 1.85;
+            color: var(--text-dim);
+            font-weight: 300;
+        }
+        .section-body strong { color: var(--text); font-weight: 600; }
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: var(--border);
+            margin: 40px 0;
         }
 
-        .metric-card {
-            background: var(--bg-card);
-            border-radius: 6px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s;
+        /* ── Features grid ──────────────────────────────────── */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
         }
-        .metric-card:hover { border-color: #888888; }
-        .metric-card .label {
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .feature-card .fname {
             font-size: 0.7rem;
-            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            font-weight: 600;
+            color: var(--text-faint);
+            margin-bottom: 6px;
         }
-        .metric-card .value {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.7rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 4px 0 2px;
-        }
-        .metric-card .sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            font-style: italic;
+        .feature-card .fdesc {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
         }
 
-        /* ── Legend ──────────────────────────────────────────── */
-        .section { margin-top: 24px; }
-        .legend-bar {
-            height: 10px;
-            border-radius: 3px;
-            background: linear-gradient(to right, #3a8c5c, #b8c84e, #d4a040, #c05050);
-            margin: 10px 0 6px;
+        /* ── Map Section ────────────────────────────────────── */
+        .map-section {
+            padding: 0;
+            max-width: 100%;
         }
-        .legend-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
+        .map-header {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 60px 32px 24px;
         }
-
-        /* ── Cities ─────────────────────────────────────────── */
-        .city-item {
+        #interactive-map {
+            width: 100%;
+            height: 65vh;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .map-controls {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px 32px;
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
-            padding: 7px 8px;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
+            align-items: center;
+        }
+        .map-ctrl-btn {
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background: transparent;
+            color: var(--text-dim);
             cursor: pointer;
-            border-radius: 4px;
             transition: all 0.15s;
         }
-        .city-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
+        .map-ctrl-btn:hover, .map-ctrl-btn.active {
+            background: var(--white);
+            color: var(--bg);
+            border-color: var(--white);
         }
-        .city-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent-warm);
-            flex-shrink: 0;
-        }
-
-        /* ── Eval ───────────────────────────────────────────── */
-        .eval-img {
-            width: 100%;
-            border-radius: 6px;
-            margin-top: 10px;
+        .city-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+        .city-chip {
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.7rem;
+            padding: 4px 12px;
             border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--text-dim);
             cursor: pointer;
-            opacity: 0.9;
-            transition: opacity 0.2s;
+            transition: all 0.15s;
+            background: transparent;
         }
-        .eval-img:hover { opacity: 1; }
+        .city-chip:hover {
+            border-color: var(--text-dim);
+            color: var(--white);
+        }
 
-        /* ── Map ────────────────────────────────────────────── */
-        #map { width: 100%; height: 100%; }
-
-        /* ── Analysis Panel ─────────────────────────────────── */
-        .analysis-panel {
-            grid-column: 1 / -1;
-            background: var(--bg-panel);
-            border-top: 1px solid var(--border);
-            padding: 16px 28px;
-            min-height: 72px;
-        }
-        .analysis-panel h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 0.72rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .analysis-content {
+        /* ── Analysis bar ───────────────────────────────────── */
+        .analysis-bar {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 16px 32px;
             display: flex;
             align-items: center;
             gap: 20px;
             font-size: 0.88rem;
+            min-height: 56px;
         }
-        .analysis-hint {
-            color: var(--text-muted);
-            font-style: italic;
-        }
-        .coord-text { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
-        .score-text { color: var(--text-primary); font-weight: 600; font-size: 1rem; }
-
+        .analysis-hint { color: var(--text-faint); font-style: italic; }
+        .coord-text { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+        .score-text { color: var(--white); font-weight: 600; font-size: 1.05rem; }
         .risk-badge {
             display: inline-block;
             padding: 3px 14px;
             border-radius: 3px;
             font-weight: 600;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             letter-spacing: 0.5px;
         }
-        .risk-low { background: rgba(58, 140, 92, 0.2); color: var(--green); border: 1px solid rgba(58, 140, 92, 0.3); }
-        .risk-moderate { background: rgba(224, 192, 96, 0.15); color: var(--yellow); border: 1px solid rgba(224, 192, 96, 0.25); }
-        .risk-high { background: rgba(212, 132, 64, 0.15); color: var(--orange); border: 1px solid rgba(212, 132, 64, 0.25); }
-        .risk-very-high { background: rgba(192, 80, 80, 0.15); color: var(--red); border: 1px solid rgba(192, 80, 80, 0.3); }
+        .risk-low { background: rgba(80,160,100,0.15); color: #6abf7b; border: 1px solid rgba(80,160,100,0.25); }
+        .risk-moderate { background: rgba(200,180,60,0.12); color: #d4c04a; border: 1px solid rgba(200,180,60,0.2); }
+        .risk-high { background: rgba(210,130,60,0.12); color: #d4945a; border: 1px solid rgba(210,130,60,0.2); }
+        .risk-very-high { background: rgba(190,70,70,0.12); color: #c06060; border: 1px solid rgba(190,70,70,0.25); }
+
+        /* ── Results ────────────────────────────────────────── */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 32px;
+        }
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 28px 24px;
+            text-align: center;
+        }
+        .result-card .rval {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .result-card .rlabel {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-faint);
+        }
+        .result-card .rsub {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .eval-section {
+            margin-top: 48px;
+        }
+        .eval-img {
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+        .eval-img:hover { opacity: 1; }
+
+        /* ── Footer ─────────────────────────────────────────── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 32px;
+            text-align: center;
+        }
+        .footer p {
+            font-size: 0.78rem;
+            color: var(--text-faint);
+            line-height: 1.8;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* ── Legend ──────────────────────────────────────────── */
+        .legend-inline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .legend-bar {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #3a8c5c, #b8c84e, #d4a040, #c05050);
+        }
+        .legend-txt { font-size: 0.68rem; color: var(--text-faint); }
 
         @media (max-width: 768px) {
-            .layout { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            .header .subtitle { display: none; }
+            .hero-title { font-size: 2.2rem; }
+            .hero-stats { gap: 24px; }
+            .results-grid { grid-template-columns: 1fr; }
+            .map-controls { padding: 12px 16px; }
         }
     </style>
 </head>
 <body>
-<div class="layout">
 
-    <!-- Header -->
-    <div class="header">
-        <h1>Flood Susceptibility <span class="thin">/</span> Sindh 2022</h1>
-        <span class="badge">XGBoost</span>
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+    <div class="hero-bg">
+        <div id="hero-map"></div>
+        <div class="hero-overlay"></div>
     </div>
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>Model Performance</h2>
-        <div class="metric-card">
-            <div class="label">AUC-ROC</div>
-            <div class="value" id="auc">&mdash;</div>
-            <div class="sub">Discrimination ability</div>
-        </div>
-        <div class="metric-card">
-            <div class="label">Avg Precision</div>
-            <div class="value" id="ap">&mdash;</div>
-            <div class="sub">Precision-recall balance</div>
-        </div>
-        <div class="metric-card">
-            <div class="label">Flood Recall</div>
-            <div class="value" id="recall">&mdash;</div>
-            <div class="sub">Actual floods detected</div>
-        </div>
-
-        <div class="section">
-            <h2>Risk Scale</h2>
-            <div class="legend-bar"></div>
-            <div class="legend-labels">
-                <span>0.0</span><span>0.25</span><span>0.50</span><span>0.75</span><span>1.0</span>
+    <div class="hero-content">
+        <div class="hero-tag">MITACS Research Project</div>
+        <h1 class="hero-title">
+            Flood Susceptibility<br>
+            <span class="accent">Sindh Province, 2022</span>
+        </h1>
+        <p class="hero-sub">
+            Machine learning-based flood risk assessment using XGBoost, trained on
+            Copernicus EMS satellite-derived flood extents and multi-source geospatial features.
+        </p>
+        <div class="hero-stats">
+            <div>
+                <div class="hero-stat-val" id="hero-auc">&mdash;</div>
+                <div class="hero-stat-label">AUC-ROC</div>
+            </div>
+            <div>
+                <div class="hero-stat-val" id="hero-ap">&mdash;</div>
+                <div class="hero-stat-label">Avg Precision</div>
+            </div>
+            <div>
+                <div class="hero-stat-val" id="hero-recall">&mdash;</div>
+                <div class="hero-stat-label">Flood Recall</div>
             </div>
         </div>
+    </div>
+    <div class="scroll-hint">Scroll to explore</div>
+</section>
 
-        <div class="section">
-            <h2>Study Region</h2>
-            <div class="city-item" data-lat="25.396" data-lon="68.358"><div class="city-dot"></div>Hyderabad</div>
-            <div class="city-item" data-lat="27.705" data-lon="68.857"><div class="city-dot"></div>Sukkur</div>
-            <div class="city-item" data-lat="27.555" data-lon="68.214"><div class="city-dot"></div>Larkana</div>
-            <div class="city-item" data-lat="26.248" data-lon="68.410"><div class="city-dot"></div>Nawabshah</div>
-            <div class="city-item" data-lat="25.528" data-lon="69.013"><div class="city-dot"></div>Mirpur Khas</div>
-            <div class="city-item" data-lat="28.283" data-lon="68.438"><div class="city-dot"></div>Jacobabad</div>
-            <div class="city-item" data-lat="27.530" data-lon="68.759"><div class="city-dot"></div>Khairpur</div>
-            <div class="city-item" data-lat="27.956" data-lon="68.638"><div class="city-dot"></div>Shikarpur</div>
-            <div class="city-item" data-lat="24.747" data-lon="67.924"><div class="city-dot"></div>Thatta</div>
-            <div class="city-item" data-lat="24.656" data-lon="68.837"><div class="city-dot"></div>Badin</div>
+<!-- ════════════ ABOUT ════════════ -->
+<section class="section">
+    <div class="section-label">About the Project</div>
+    <h2 class="section-title">Predicting Flood Risk from Space</h2>
+    <div class="section-body">
+        <p>
+            The <strong>2022 Sindh floods</strong> displaced over 7 million people and submerged
+            roughly one-third of Pakistan. This project builds a <strong>flood susceptibility model</strong>
+            that learns environmental patterns from the 2022 event to predict which areas are most
+            prone to flooding.
+        </p>
+        <div class="divider"></div>
+        <p>
+            An <strong>XGBoost classifier</strong> was trained on 500,000 pixel samples across the
+            Sindh province, using ground truth from Copernicus Emergency Management Service (EMS)
+            Rapid Mapping delineation products. The model evaluates seven geospatial predictors
+            at 30-meter resolution.
+        </p>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <div class="fname">Elevation</div>
+            <div class="fdesc">Copernicus DEM 30m, reprojected to UTM Zone 42N</div>
         </div>
+        <div class="feature-card">
+            <div class="fname">Slope</div>
+            <div class="fdesc">Terrain gradient derived from pit-filled DEM via WhiteboxTools</div>
+        </div>
+        <div class="feature-card">
+            <div class="fname">TWI</div>
+            <div class="fdesc">Topographic Wetness Index from D8 flow accumulation</div>
+        </div>
+        <div class="feature-card">
+            <div class="fname">Dist. to River</div>
+            <div class="fdesc">Euclidean distance to HydroRIVERS v10 network</div>
+        </div>
+        <div class="feature-card">
+            <div class="fname">Rainfall Max</div>
+            <div class="fdesc">Peak pentad rainfall from CHIRPS-2.0, August 2022</div>
+        </div>
+        <div class="feature-card">
+            <div class="fname">Rainfall Cum.</div>
+            <div class="fdesc">Cumulative monthly rainfall across six pentads</div>
+        </div>
+        <div class="feature-card">
+            <div class="fname">Land Cover</div>
+            <div class="fdesc">Placeholder layer (ESA WorldCover pending)</div>
+        </div>
+    </div>
+</section>
 
-        <div class="section">
-            <h2>Evaluation</h2>
-            <img class="eval-img" src="/static/evaluation_plots.png" alt="Model evaluation plots" onclick="window.open(this.src)">
+<!-- ════════════ MAP ════════════ -->
+<section class="map-section">
+    <div class="map-header">
+        <div class="section-label">Interactive Map</div>
+        <h2 class="section-title">Explore Flood Risk</h2>
+        <p class="section-body" style="max-width:600px">
+            Click anywhere on the map to inspect the predicted flood susceptibility score.
+            Risk values range from 0.0 (negligible) to 1.0 (very high).
+        </p>
+        <div class="legend-inline">
+            <span class="legend-txt">Low</span>
+            <div class="legend-bar"></div>
+            <span class="legend-txt">High</span>
         </div>
     </div>
 
-    <!-- Map -->
-    <div id="map"></div>
+    <div id="interactive-map"></div>
 
-    <!-- Analysis Panel -->
-    <div class="analysis-panel">
-        <h3>Location Analysis</h3>
-        <div class="analysis-content" id="analysis">
-            <span class="analysis-hint">Click on the map to inspect flood risk at any location</span>
+    <div class="map-controls">
+        <button class="map-ctrl-btn active" onclick="setBase('dark')">Dark</button>
+        <button class="map-ctrl-btn" onclick="setBase('satellite')">Satellite</button>
+        <div class="city-chips" id="city-chips"></div>
+    </div>
+
+    <div class="analysis-bar" id="analysis">
+        <span class="analysis-hint">Click on the map to inspect flood risk</span>
+    </div>
+</section>
+
+<!-- ════════════ RESULTS ════════════ -->
+<section class="section">
+    <div class="section-label">Model Results</div>
+    <h2 class="section-title">Performance</h2>
+
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="rval" id="r-auc">&mdash;</div>
+            <div class="rlabel">AUC-ROC</div>
+            <div class="rsub">Discrimination ability</div>
+        </div>
+        <div class="result-card">
+            <div class="rval" id="r-ap">&mdash;</div>
+            <div class="rlabel">Avg Precision</div>
+            <div class="rsub">Precision-recall balance</div>
+        </div>
+        <div class="result-card">
+            <div class="rval" id="r-recall">&mdash;</div>
+            <div class="rlabel">Flood Recall</div>
+            <div class="rsub">Actual floods detected</div>
         </div>
     </div>
-</div>
 
+    <div class="eval-section">
+        <h3 style="font-family:'Playfair Display',serif; font-size:1.2rem; color:var(--white); margin-bottom:16px;">Evaluation Plots</h3>
+        <img class="eval-img" src="/static/evaluation_plots.png" alt="ROC, PR curve, feature importance" onclick="window.open(this.src)">
+    </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="footer">
+    <p>
+        <strong style="color:var(--text-dim)">Data Sources</strong><br>
+        Copernicus DEM 30m (AWS S3) &middot; CHIRPS-2.0 Rainfall &middot; HydroSHEDS HydroRIVERS v10
+        &middot; Copernicus EMS Rapid Mapping (EMSR629, EMSR631)<br><br>
+        <strong style="color:var(--text-dim)">Limitations</strong><br>
+        This is a susceptibility model, not a real-time forecast. Temporal dynamics such as flood wave
+        propagation and dam releases are not captured. Trained on a single event (August 2022).
+    </p>
+</footer>
+
+<!-- ════════════ SCRIPTS ════════════ -->
 <script>
-// ── Map ──────────────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true }).setView([26.0, 68.5], 7);
+// ── Hero background map ──────────────────────────────────────────────
+const heroMap = L.map('hero-map', {
+    zoomControl: false, attributionControl: false,
+    dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false
+}).setView([26.0, 68.5], 7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png').addTo(heroMap);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OSM &copy; CARTO',
-    maxZoom: 18
+// ── Interactive map ──────────────────────────────────────────────────
+const map = L.map('interactive-map', { zoomControl: true }).setView([26.0, 68.5], 7);
+const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OSM &copy; CARTO', maxZoom: 18
+}).addTo(map);
+const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri', maxZoom: 18
+});
+let currentBase = darkLayer;
+
+function setBase(type) {
+    map.removeLayer(currentBase);
+    currentBase = type === 'satellite' ? satLayer : darkLayer;
+    currentBase.addTo(map);
+    document.querySelectorAll('.map-ctrl-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+// Study area
+L.rectangle([[23.5, 67.0], [28.5, 71.0]], {
+    color: '#888', weight: 1.5, dashArray: '6,4', fill: false, opacity: 0.5
 }).addTo(map);
 
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '&copy; Esri',
-    maxZoom: 18
-}).addTo(map);
-
-// ── Study Area ───────────────────────────────────────────────────────
-L.rectangle(
-    [[23.5, 67.0], [28.5, 71.0]],
-    { color: '#888888', weight: 1.5, dashArray: '6,4', fill: false, opacity: 0.6 }
-).addTo(map).bindTooltip('Study Area');
-
-// ── City Markers ─────────────────────────────────────────────────────
+// City markers + chips
 const cities = [
     ['Hyderabad', 25.396, 68.358], ['Sukkur', 27.705, 68.857],
     ['Larkana', 27.555, 68.214], ['Nawabshah', 26.248, 68.410],
@@ -327,20 +547,25 @@ const cities = [
     ['Khairpur', 27.530, 68.759], ['Shikarpur', 27.956, 68.638],
     ['Thatta', 24.747, 67.924], ['Badin', 24.656, 68.837],
 ];
+const chipContainer = document.getElementById('city-chips');
 cities.forEach(([name, lat, lon]) => {
     L.circleMarker([lat, lon], {
-        radius: 4, color: '#b0b0b0', fillColor: '#d0d0d0', fillOpacity: 0.85, weight: 1
+        radius: 4, color: '#999', fillColor: '#ccc', fillOpacity: 0.8, weight: 1
     }).addTo(map).bindTooltip(name, {
-        permanent: true, direction: 'right', className: 'city-label', offset: [6, 0]
+        permanent: true, direction: 'right', className: 'map-city-label', offset: [6, 0]
     });
+    const chip = document.createElement('button');
+    chip.className = 'city-chip';
+    chip.textContent = name;
+    chip.onclick = () => map.flyTo([lat, lon], 10, { duration: 0.8 });
+    chipContainer.appendChild(chip);
 });
 
-// ── Click handler ────────────────────────────────────────────────────
+// Click handler
 map.on('click', async (e) => {
     const { lat, lng } = e.latlng;
     const panel = document.getElementById('analysis');
     panel.innerHTML = '<span class="analysis-hint">Querying...</span>';
-
     try {
         const res = await fetch(`/api/analyze?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`);
         const data = await res.json();
@@ -348,79 +573,71 @@ map.on('click', async (e) => {
             panel.innerHTML = `<span class="coord-text">${lat.toFixed(4)}N, ${lng.toFixed(4)}E &mdash; ${data.error}</span>`;
             return;
         }
-        const levelClass = data.risk_level === 'Low' ? 'risk-low' :
-                           data.risk_level === 'Moderate' ? 'risk-moderate' :
-                           data.risk_level === 'High' ? 'risk-high' : 'risk-very-high';
+        const lc = data.risk_level === 'Low' ? 'risk-low' : data.risk_level === 'Moderate' ? 'risk-moderate' :
+                   data.risk_level === 'High' ? 'risk-high' : 'risk-very-high';
         panel.innerHTML = `
             <span class="coord-text">${data.lat.toFixed(4)}N, ${data.lon.toFixed(4)}E</span>
-            <span class="risk-badge ${levelClass}">${data.risk_level}</span>
+            <span class="risk-badge ${lc}">${data.risk_level}</span>
             <span class="score-text">${data.risk_score}</span>
         `;
-    } catch (err) {
-        panel.innerHTML = '<span style="color:#c05050">Failed to fetch risk data</span>';
-    }
+    } catch { panel.innerHTML = '<span style="color:#c06060">Failed to fetch risk data</span>'; }
 });
 
-// ── City click → fly to ─────────────────────────────────────────────
-document.querySelectorAll('.city-item').forEach(el => {
-    el.addEventListener('click', () => {
-        map.flyTo([parseFloat(el.dataset.lat), parseFloat(el.dataset.lon)], 10, { duration: 0.8 });
-    });
-});
-
-// ── Risk overlay ─────────────────────────────────────────────────────
+// Risk overlay
 fetch('/api/risk').then(r => r.json()).then(data => {
     const { south, north, west, east } = data.bounds;
-    const grid = data.data;
-    const rows = grid.length, cols = grid[0].length;
+    const grid = data.data, rows = grid.length, cols = grid[0].length;
     const canvas = document.createElement('canvas');
     canvas.width = cols; canvas.height = rows;
-    const ctx = canvas.getContext('2d');
-    const img = ctx.createImageData(cols, rows);
-
+    const ctx = canvas.getContext('2d'), img = ctx.createImageData(cols, rows);
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             const v = grid[r][c], i = (r * cols + c) * 4;
-            if (v < 0) { img.data[i + 3] = 0; continue; }
+            if (v < 0) { img.data[i+3] = 0; continue; }
             const [cr, cg, cb] = riskColor(v);
-            img.data[i] = cr; img.data[i+1] = cg; img.data[i+2] = cb;
-            img.data[i+3] = v < 0.08 ? 30 : 170;
+            img.data[i]=cr; img.data[i+1]=cg; img.data[i+2]=cb;
+            img.data[i+3] = v < 0.08 ? 25 : 160;
         }
     }
     ctx.putImageData(img, 0, 0);
-    L.imageOverlay(canvas.toDataURL(), [[south, west], [north, east]], { opacity: 0.8 }).addTo(map);
+    const overlay = L.imageOverlay(canvas.toDataURL(), [[south,west],[north,east]], { opacity: 0.8 });
+    overlay.addTo(map);
+    // Also add faded version to hero map
+    const heroOverlay = L.imageOverlay(canvas.toDataURL(), [[south,west],[north,east]], { opacity: 0.5 });
+    heroOverlay.addTo(heroMap);
 });
 
 function riskColor(v) {
     v = Math.max(0, Math.min(1, v));
-    if (v < 0.25) { const t = v / 0.25; return [Math.round(58 + t * 126), Math.round(140 + t * 60), Math.round(92 - t * 14)]; }
-    if (v < 0.5)  { const t = (v - 0.25) / 0.25; return [Math.round(184 + t * 28), Math.round(200 - t * 8), Math.round(78 - t * 14)]; }
-    if (v < 0.75) { const t = (v - 0.5) / 0.25; return [Math.round(212 - t * 20), Math.round(192 - t * 60), Math.round(64 - t * 4)]; }
-    const t = (v - 0.75) / 0.25; return [Math.round(192 - t * 20), Math.round(132 - t * 52), Math.round(60 - t * 10)];
+    if (v < 0.25) { const t = v/0.25; return [Math.round(58+t*126), Math.round(140+t*60), Math.round(92-t*14)]; }
+    if (v < 0.5) { const t = (v-0.25)/0.25; return [Math.round(184+t*28), Math.round(200-t*8), Math.round(78-t*14)]; }
+    if (v < 0.75) { const t = (v-0.5)/0.25; return [Math.round(212-t*20), Math.round(192-t*60), Math.round(64-t*4)]; }
+    const t = (v-0.75)/0.25; return [Math.round(192-t*20), Math.round(132-t*52), Math.round(60-t*10)];
 }
 
-// ── Metrics ──────────────────────────────────────────────────────────
+// Metrics
 fetch('/api/metrics').then(r => r.json()).then(m => {
-    if (m.auc_roc) document.getElementById('auc').textContent = m.auc_roc.toFixed(3);
-    if (m.average_precision) document.getElementById('ap').textContent = m.average_precision.toFixed(3);
+    const auc = m.auc_roc ? m.auc_roc.toFixed(3) : '—';
+    const ap = m.average_precision ? m.average_precision.toFixed(3) : '—';
+    let recall = '—';
     if (m.confusion_matrix) {
         const tp = m.confusion_matrix[1][1], fn = m.confusion_matrix[1][0];
-        document.getElementById('recall').textContent = ((tp / (tp + fn)) * 100).toFixed(0) + '%';
+        recall = ((tp / (tp + fn)) * 100).toFixed(0) + '%';
     }
+    document.getElementById('hero-auc').textContent = auc;
+    document.getElementById('hero-ap').textContent = ap;
+    document.getElementById('hero-recall').textContent = recall;
+    document.getElementById('r-auc').textContent = auc;
+    document.getElementById('r-ap').textContent = ap;
+    document.getElementById('r-recall').textContent = recall;
 });
 </script>
 
 <style>
-    .city-label {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: #c8d0e0;
-        font-family: 'Source Serif 4', Georgia, serif;
-        font-size: 11px;
-        font-weight: 400;
-        letter-spacing: 0.3px;
-        text-shadow: 0 0 4px rgba(12,18,32,0.95), 0 0 8px rgba(12,18,32,0.8);
+    .map-city-label {
+        background: transparent !important; border: none !important; box-shadow: none !important;
+        color: #c8c8c8; font-family: 'Source Serif 4', Georgia, serif; font-size: 11px;
+        text-shadow: 0 0 4px rgba(17,17,17,0.95), 0 0 8px rgba(17,17,17,0.8);
     }
 </style>
 </body>
