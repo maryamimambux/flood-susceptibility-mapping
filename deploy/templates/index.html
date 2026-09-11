@@ -241,10 +241,12 @@ function riskColor(v) {
 // ── Load metrics ─────────────────────────────────────────────────────
 fetch('/api/metrics').then(r => r.json()).then(m => {
     if (m.auc_roc) document.getElementById('auc').textContent = m.auc_roc.toFixed(3);
-    if (m.avg_precision) document.getElementById('ap').textContent = m.avg_precision.toFixed(3);
-    if (m.classification_report) {
-        const flood = m.classification_report['Flooded'] || m.classification_report['1'];
-        if (flood) document.getElementById('recall').textContent = (flood.recall * 100).toFixed(0) + '%';
+    if (m.average_precision) document.getElementById('ap').textContent = m.average_precision.toFixed(3);
+    if (m.confusion_matrix) {
+        const fn = m.confusion_matrix[1][0];
+        const tp = m.confusion_matrix[1][1];
+        const recall = tp / (tp + fn);
+        document.getElementById('recall').textContent = (recall * 100).toFixed(0) + '%';
     }
 });
 </script>
