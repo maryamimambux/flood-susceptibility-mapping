@@ -18,12 +18,19 @@ DEPLOY_DIR.mkdir(parents=True, exist_ok=True)
 print("Downsampling risk map...")
 import rasterio
 from rasterio.transform import array_bounds
+from pyproj import Transformer
 
 risk_path = OUTPUT_DIR / "flood_risk_map.tif"
 with rasterio.open(risk_path) as src:
     full_data = src.read(1)
     bounds = src.bounds
     crs = src.crs.to_string()
+
+# Convert bounds from UTM to WGS84 (lat/lon) for the web app
+utm_to_wgs84 = Transformer.from_crs(crs, "EPSG:4326", always_xy=True)
+west_wgs, south_wgs = utm_to_wgs84.transform(bounds.left, bounds.bottom)
+east_wgs, north_wgs = utm_to_wgs84.transform(bounds.right, bounds.top)
+print(f"  UTM bounds -> WGS84: S={south_wgs:.2f} N={north_wgs:.2f} W={west_wgs:.2f} E={east_wgs:.2f}")
 
 # Downsample by factor of 20 (6170x4556 → ~309x228)
 factor = 20
@@ -34,14 +41,14 @@ small = np.round(small, 4)  # 4 decimal places is plenty
 
 print(f"  Original: {full_data.shape} -> Downsampled: {small.shape}")
 
-# Save as JSON
+# Save as JSON (bounds in WGS84 for the web app)
 risk_json = {
     "data": small.tolist(),
     "bounds": {
-        "south": bounds.bottom,
-        "north": bounds.top,
-        "west": bounds.left,
-        "east": bounds.right,
+        "south": round(south_wgs, 4),
+        "north": round(north_wgs, 4),
+        "west": round(west_wgs, 4),
+        "east": round(east_wgs, 4),
     },
     "shape": list(small.shape),
 }
