@@ -4,7 +4,7 @@ A machine learning pipeline that maps flood susceptibility across Sindh Province
 
 **[Live demo](https://flood-susceptibility-mapping.vercel.app/)**
 
-![Flood susceptibility map of Sindh](docs/susceptibility_map.png)
+![Flood susceptibility map of Sindh](DOCUMENTATION/susceptibility_map.png)
 
 ## Overview
 
