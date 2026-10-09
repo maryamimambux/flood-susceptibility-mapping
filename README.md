@@ -1,22 +1,85 @@
-# Flood Susceptibility Mapping of Sindh Province, Pakistan
+<div align="center">
 
-A machine learning pipeline that maps flood susceptibility across Sindh Province using **XGBoost** and freely available satellite and geospatial data. The case study is the **August 2022 monsoon floods**.
+# 🌊 Flood Susceptibility Mapping — Sindh, Pakistan
 
-**[Live demo](https://flood-susceptibility-mapping.vercel.app/)**
+**Machine learning on open satellite data to show where the 2022 floods hit hardest, at 30 m resolution.**
 
-![Flood susceptibility map of Sindh](DOCUMENTATION/susceptibility_map.png)
+[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Open_the_map-0F5A8A?style=for-the-badge)](https://flood-susceptibility-mapping.vercel.app/)
+[![Report](https://img.shields.io/badge/📄_FULL_REPORT-PDF-C0392B?style=for-the-badge)](DOCUMENTATION/Flood_Susceptibility_Report.pdf)
 
-## Overview
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-EC6B23)
+![Flask](https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+![Leaflet](https://img.shields.io/badge/Leaflet-199900?logo=leaflet&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
 
-The 2022 monsoon floods submerged roughly one-third of Pakistan, and Sindh was among the worst-hit provinces. This project predicts, for every 30 m pixel, how likely the terrain is to flood, producing a continuous susceptibility surface that can support disaster preparedness, land-use planning and emergency response.
+<a href="https://flood-susceptibility-mapping.vercel.app/">
+  <img src="DOCUMENTATION/susceptibility_map.png" alt="Flood susceptibility map of Sindh Province" width="420">
+</a>
 
-- End-to-end, reproducible pipeline run from a single entry point (`run.py`)
-- Uses open data only, with no commercial licences
-- Flood labels derived from Copernicus EMS satellite-observed inundation polygons
-- Spatial block train/test split to limit spatial-autocorrelation leakage
-- Interactive dashboard, run locally or deployed publicly on Vercel
+<sub>👆 Click the map to explore it live</sub>
 
-## Results
+</div>
+
+---
+
+## ⚡ At a glance
+
+| | |
+|---|---|
+| 🎯 **AUC-ROC** | **0.998** |
+| 🔎 **Flood recall** | **99.87%** (23 of 17,508 flooded pixels missed) |
+| 🗺️ **Resolution** | **30 m**, ~28 million pixels covering ~225,000 km² |
+| 🧠 **Training data** | 500,000 pixels labelled from Copernicus EMS satellite flood polygons |
+| 💸 **Data cost** | **$0**: 100% open data |
+| 🌐 **Deployed** | Interactive web map on Vercel |
+
+## ✨ What makes this project stand out
+
+- **End-to-end ownership:** data download → feature engineering → model → dashboard → public deployment, all from one CLI (`python run.py <stage>`).
+- **Real-world, high-stakes problem:** the 2022 monsoon floods affected 33 million people in Pakistan.
+- **Handles hard data problems:** only 0.25% of pixels are flooded, so I used class-balanced sampling and `scale_pos_weight`.
+- **Methodologically careful:** a **spatial block split** instead of a random one to limit leakage, plus an honest limitations section that flags possible metric inflation.
+- **Production-minded engineering:** the 957 MB risk raster was downsampled to a ~575 KB payload so it runs as a serverless web app.
+- **Fully reproducible:** anonymous S3 downloads with resume support and tile integrity checks.
+
+## 🎮 Try it
+
+1. **[Open the live map](https://flood-susceptibility-mapping.vercel.app/)**, pan, zoom and jump between cities.
+2. **Run the full dashboard locally** for more controls:
+   - Toggle layers: risk map, observed flood extent, rainfall, river network
+   - Move the **risk-threshold slider**
+   - **Click anywhere** to see predicted risk and the factors driving it
+
+```bash
+git clone https://github.com/maryamimambux/flood-susceptibility-mapping.git
+cd flood-susceptibility-mapping
+pip install -r requirements.txt
+python run.py dashboard
+```
+
+## 🔬 How it works
+
+```mermaid
+flowchart LR
+    A[📥 Download<br/>DEM · CHIRPS · Rivers · EMS] --> B[🛠️ Feature engineering<br/>slope · TWI · river distance · rainfall]
+    B --> C[🧠 XGBoost<br/>spatial block split]
+    C --> D[🗺️ 30 m risk map]
+    D --> E[🌐 Dashboard + Vercel app]
+```
+
+| Stage | Command |
+|---|---|
+| 1. Data acquisition | `python run.py download` |
+| 2. Feature engineering | `python run.py process` |
+| 3. Model training and inference | `python run.py train` |
+| 4. Dashboard | `python run.py dashboard` |
+
+<details>
+<summary><b>📊 Full performance metrics (click to expand)</b></summary>
+
+<br>
 
 Test set of 125,000 held-out pixels:
 
@@ -24,97 +87,37 @@ Test set of 125,000 held-out pixels:
 |---|---|
 | AUC-ROC | 0.9984 |
 | Average precision | 0.9856 |
-| Overall accuracy | 98.86% |
+| Accuracy | 98.86% |
 | Flood precision | 0.9255 |
 | Flood recall | 0.9987 |
 | Flood F1-score | 0.9607 |
 
-Only 23 of 17,508 flooded test pixels were missed. High susceptibility concentrates along the Indus floodplain, notably the Larkana-Sukkur-Jacobabad corridor and around Sanghar and Khipro, matching the observed 2022 flood extents.
-
-> **Interpret with care:** the very high AUC may be inflated by residual spatial autocorrelation even with block splitting. Treat this as an MVP baseline, not proof of generalisation to other flood events.
-
-## Data
-
-| Dataset | Source | Resolution | Role |
-|---|---|---|---|
-| Copernicus DEM 30 m | ESA / AWS open-data registry | 30 m | Elevation, slope, TWI |
-| CHIRPS-2.0 pentads | UCSB Climate Hazards Center | ~5.5 km | Peak and cumulative rainfall |
-| HydroRIVERS v10 | HydroSHEDS / WWF | Vector | Distance to river |
-| Copernicus EMS EMSR629 / EMSR631 | EU EMS Rapid Mapping | Vector polygons | Flood-extent ground truth |
-| ESA WorldCover 2021 | ESA / Zenodo | 10 m | Land cover (placeholder in MVP) |
-
-**Predictors (7):** elevation, slope, Topographic Wetness Index (TWI), distance to river, land cover, peak pentad rainfall, cumulative rainfall.
-
-All layers are reprojected to UTM Zone 42N (EPSG:32642) on a 6,170 x 4,556 pixel, 30 m grid (~28.1 million pixels).
-
-## Pipeline
-
-The pipeline has four stages, each run through `run.py`:
-
-| Stage | Command | What it does |
+|  | Predicted: not flooded | Predicted: flooded |
 |---|---|---|
-| 1. Data acquisition | `python run.py download` | Downloads the DEM tiles (anonymous AWS S3), CHIRPS pentads, HydroRIVERS and imports EMS data |
-| 2. Feature engineering | `python run.py process` | Aligns rasters to the DEM grid; derives slope, TWI, river distance and rainfall aggregates; rasterises labels |
-| 3. Model training | `python run.py train` | Spatial block split, XGBoost training, evaluation, full-region inference |
-| 4. Dashboard | `python run.py dashboard` | Launches the local Streamlit + Folium dashboard |
+| **Actual: not flooded** | 106,084 | 1,408 |
+| **Actual: flooded** | 23 | 17,485 |
 
-Terrain derivatives are computed with [WhiteboxTools](https://github.com/jblindsay/whitebox-tools). Class imbalance (only 0.25% of pixels are flooded) is handled by keeping all 71,108 flood pixels, sampling 428,892 non-flood pixels, and setting `scale_pos_weight`.
+</details>
 
-## Repository structure
+<details>
+<summary><b>🌍 Data sources (click to expand)</b></summary>
 
-```
-.
-├── data/              # Raw and processed datasets, model outputs
-├── deploy/            # Assets served by the public deployment
-├── src/               # Pipeline source code
-├── app.py             # Flask + Leaflet web app (Vercel deployment)
-├── config.py          # Paths and pipeline configuration
-├── prepare_deploy.py  # Downsamples the risk raster for web deployment
-├── run.py             # Command-line entry point for all pipeline stages
-├── requirements.txt   # Python dependencies
-├── pyproject.toml     # Project metadata for deployment
-├── vercel.json        # Vercel configuration
-└── .gitignore
-```
+<br>
 
-## Getting started
+| Dataset | Source | Role |
+|---|---|---|
+| Copernicus DEM 30 m | ESA / AWS | Elevation, slope, TWI |
+| CHIRPS-2.0 pentads | UCSB Climate Hazards Center | Peak and cumulative rainfall |
+| HydroRIVERS v10 | HydroSHEDS / WWF | Distance to river |
+| Copernicus EMS EMSR629 / 631 | EU Rapid Mapping | Flood ground truth |
+| ESA WorldCover 2021 | ESA / Zenodo | Land cover (placeholder in MVP) |
 
-### Prerequisites
+</details>
 
-- Python 3.10+
-- Roughly 20 GB of free disk space for the raw rasters and the full-resolution risk raster
+<details>
+<summary><b>📈 What drives the predictions (click to expand)</b></summary>
 
-### Installation
-
-```bash
-git clone https://github.com/maryamimambux/flood-susceptibility-mapping.git
-cd flood-susceptibility-mapping
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### Run the pipeline
-
-```bash
-python run.py download
-python run.py process
-python run.py train
-python run.py dashboard
-```
-
-The local dashboard offers layer toggles (risk map, observed flood extent, rainfall, river network), an adjustable risk-threshold slider, and a click-to-analyse panel showing predicted risk and contributing factors at any location.
-
-## Deployment
-
-The public site is a lightweight Flask + Leaflet app served as a serverless function on [Vercel](https://vercel.com). The full risk raster (~957 MB) is far too large for serverless limits, so `prepare_deploy.py` produces a downsampled 309 x 228 version (~575 KB JSON) that is drawn as a canvas image overlay on the map.
-
-```bash
-python prepare_deploy.py   # regenerate the downsampled risk layer
-vercel --prod              # deploy
-```
-
-## Feature importance
+<br>
 
 | Feature | Approx. share of gain |
 |---|---|
@@ -124,35 +127,65 @@ vercel --prod              # deploy
 | Slope | 8% |
 | TWI | 2-3% |
 | Distance to river | 2-3% |
-| Land cover | ~0% (constant placeholder) |
+| Land cover | ~0% (placeholder) |
 
-## Limitations
+</details>
 
-- **Single-event training:** trained only on August 2022, so it may not transfer to floods with different mechanisms.
-- **Susceptibility, not forecasting:** estimates static propensity, with no flood-wave propagation or temporal dynamics.
-- **Land-cover placeholder:** real ESA WorldCover data is not yet integrated.
-- **Coarse rainfall:** CHIRPS pentads (~5.5 km) are coarse relative to the 30 m grid.
-- **Partial ground truth:** EMS delineations cover five areas of interest; flooded areas outside them are labelled non-flood.
+<details>
+<summary><b>⚠️ Honest limitations (click to expand)</b></summary>
 
-## Roadmap
+<br>
 
-- [ ] Integrate ESA WorldCover 2021 land cover
+- The very high AUC may be inflated by residual spatial autocorrelation, so treat this as an MVP baseline.
+- Trained on a single event (August 2022) and may not transfer to other flood types.
+- Estimates susceptibility, not real-time forecasts.
+- Land cover is a constant placeholder until ESA WorldCover is integrated.
+- CHIRPS rainfall (~5.5 km) is coarse relative to the 30 m grid.
+- EMS ground truth covers five areas, so unobserved flooded areas are labelled non-flood.
+
+</details>
+
+<details>
+<summary><b>🗂️ Repository structure (click to expand)</b></summary>
+
+<br>
+
+```
+.
+├── DOCUMENTATION/     # Full report (PDF) and figures
+├── data/              # Datasets and model outputs
+├── deploy/            # Assets for the public deployment
+├── src/               # Pipeline source code
+├── app.py             # Flask + Leaflet web app
+├── config.py          # Configuration
+├── prepare_deploy.py  # Downsamples the risk raster for the web
+├── run.py             # CLI entry point
+├── requirements.txt
+├── pyproject.toml
+└── vercel.json
+```
+
+</details>
+
+## 📚 Detailed documentation
+
+The full write-up covers the study area, methodology, results, discussion and references:
+
+👉 **[`DOCUMENTATION/Flood_Susceptibility_Report.pdf`](DOCUMENTATION/Flood_Susceptibility_Report.pdf)**
+
+## 🛣️ Roadmap
+
+- [ ] Integrate real ESA WorldCover land cover
 - [ ] Multi-event training (2010, 2011, 2020, 2023)
-- [ ] Add Sentinel-1 SAR flood extents for cloud-independent ground truth
-- [ ] Hyperparameter optimisation and SHAP-based interpretability
-- [ ] Calibrate probabilities against return-period hazard maps
+- [ ] Sentinel-1 SAR flood extents
+- [ ] SHAP interpretability and hyperparameter tuning
+- [ ] Probability calibration against return-period hazard maps
 
-## References
+---
 
-1. European Commission. *Copernicus Emergency Management Service - Rapid Mapping*, EMSR629 and EMSR631 (Pakistan Floods, 2022).
-2. European Space Agency. *Copernicus DEM, 30 m*. AWS Registry of Open Data.
-3. Funk, C., et al. (2015). The climate hazards infrared precipitation with stations. *Scientific Data*, 2, 150066.
-4. Lehner, B., et al. (2008). New global hydrography derived from spaceborne elevation data. *Eos*, 89(10), 93-94.
-5. Chen, T., and Guestrin, C. (2016). XGBoost: A scalable tree boosting system. *Proc. ACM SIGKDD*, 785-794.
-6. Lindsay, J. B. (2016). WhiteboxTools: A geospatial analysis toolkit.
-7. Roberts, D. R., et al. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. *Ecography*, 40(8), 913-929.
-8. CRED / UNDRR. (2022). *Pakistan Floods 2022 - Post-Disaster Needs Assessment*.
+<div align="center">
 
-## License
+Built with open data from Copernicus, CHIRPS and HydroSHEDS.
+If you find this useful, a ⭐ is appreciated.
 
-Add a license of your choice (e.g. MIT) in a `LICENSE` file.
+</div>
