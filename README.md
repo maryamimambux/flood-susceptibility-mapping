@@ -14,8 +14,13 @@
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?logo=leaflet&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
 
-<img src="DOCUMENTATION/Website.png" alt="Flood susceptibility map of Sindh Province" width="420">
 </div>
+
+<a href="https://flood-susceptibility-mapping.vercel.app/">
+  <img src="DOCUMENTATION/Website.png" alt="Flood susceptibility map of Sindh Province" width="100%">
+</a>
+
+<p align="center"><sub>👆 Click the screenshot to open the live map</sub></p>
 
 ---
 
